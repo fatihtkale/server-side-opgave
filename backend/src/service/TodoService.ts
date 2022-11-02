@@ -4,34 +4,43 @@ import { Todo } from "../entity/todo";
 import { Todos } from "../entity/todos";
 import { isEmpty } from "../utils/utils";
 import bcrypt from 'bcryptjs';
+import TodosService from "./TodosService";
 
 class TodoService {
     async createTodo(userId: number, desc: string, date: Date) {
         let todo = getRepository(Todo);
         let user = getRepository(User);
 
-        var sentDate = new Date(date) 
+        var sentDate = new Date(date)
 
-        var selectedUser = await user.findOne({where: {id : userId}})
+        var selectedUser = await user.findOne({ where: { id: userId } })
 
-        await todo.save({
-            desc,
-            date: sentDate.toLocaleString('default', {day: 'numeric', month: 'long', year:'numeric' }),
-            user: selectedUser
-        })
+        var checkTodoExists = await todo.findOne({where: {
+            date: sentDate.toLocaleString('default', { day: 'numeric', month: 'long', year: 'numeric' })
+        }})
+
+        if(checkTodoExists !== null || checkTodoExists !== undefined){
+            await TodosService.createTodosWithTodo(checkTodoExists.id)
+        }else{   
+            await todo.save({
+                desc,
+                date: sentDate.toLocaleString('default', { day: 'numeric', month: 'long', year: 'numeric' }),
+                user: selectedUser
+            })
+        }
     }
 
-    async createTodoWithTodos(userId: number, tododesc: string, tododate: Date) : Promise<void> {
+    async createTodoWithTodos(userId: number, tododesc: string, tododate: Date): Promise<void> {
         let todo = getRepository(Todo);
         let todos = getRepository(Todos);
         let user = getRepository(User);
-        var sentDate = new Date(tododate) 
+        var sentDate = new Date(tododate)
 
-        var selectedUser = await user.findOne({where: {id : userId}})
-        
+        var selectedUser = await user.findOne({ where: { id: userId } })
+
         var mainTodo = await todo.save({
             desc: tododesc,
-            date: sentDate.toLocaleString('default', {day: 'numeric', month: 'long', year:'numeric' }),
+            date: sentDate.toLocaleString('default', { day: 'numeric', month: 'long', year: 'numeric' }),
             user: selectedUser
         })
 
@@ -42,19 +51,24 @@ class TodoService {
         })
     }
 
-    async getAllTodos(){
+    async getAllTodos() {
         let todo = getRepository(Todo)
 
-        return await todo.find();
+        return await todo.find({
+            relations: ['Todos']
+        });
     }
 
-    async getTodoWithUser(userId: number){
+    async getTodoWithUser(userId: number) {
         let todo = getRepository(Todo)
-        
-        return todo.find({where: { user: userId }})
+
+        return todo.find({
+            where: { user: userId },
+            relations: ['Todos']
+        })
     }
 
-    async deleteTodo(todoId:number){
+    async deleteTodo(todoId: number) {
         let todo = getRepository(Todo)
 
         await todo.delete(todoId)

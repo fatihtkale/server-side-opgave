@@ -16,10 +16,12 @@ app.use(morgan("dev"));
 /* Routes import */
 import todo from "./router/todo";
 import user from "./router/user";
+import todos from "./router/todos";
 
 /* Routes path */
 app.use("/todo", todo);
 app.use("/user", user);
+app.use("/todos", todos);
 
 /* Create connection with database */
 createConnection()

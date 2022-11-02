@@ -29,22 +29,8 @@ class UserService {
 
     async createUser(username: string, password: string): Promise<User> {
         var userRepo = getRepository(User)
-        var todoRepo = getRepository(Todo)
-        var todosRepo = getRepository(Todos)
         var salt = bcrypt.genSaltSync(10);
         
-        var todos = await todosRepo.save({
-            desc: '',
-            title: '',
-            status: false
-        });
-
-        var todo = await todoRepo.save({
-            desc: '',
-            date: '',
-            Todos: [todos]
-        });
-
         var user = await userRepo.findOne({ where: { username: username } })
         
         if (isEmpty(user) == false) {
@@ -57,7 +43,6 @@ class UserService {
         var newUser = await userRepo.save({
             username,
             password: bcrypt.hashSync(password, salt),
-            Todo: [todo],
             firstLogin: true
         })
         
