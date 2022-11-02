@@ -40,7 +40,7 @@
                 :class="form.error == true ? 'border-2 border-red-500' : '' "
               />
             </div>
-            <button class="bg-blue-500 py-2 rounded-md font-bold text-white" type="submit">Login</button>
+            <button class="bg-blue-500 py-2 rounded-md font-bold text-white" type="submit">Register</button>
             <router-link class="text-blue-500 text-center my-2" to="/">Har en bruger?</router-link>
           </form>
         </div>
