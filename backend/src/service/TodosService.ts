@@ -35,13 +35,21 @@ class TodosService {
         }).execute()
     }
 
-    async updateTodosStatus(todosId: number, newTitle: string){
+    async updateTodosStatus(todosId: number, newStatus: boolean){
         let todos = getRepository(Todos);
         var salt = "hehe"
 
+        console.log("before", newStatus)
+        if (newStatus == true) {
+            newStatus = false
+        }else {
+            newStatus = true
+        }
+        console.log("after", newStatus)
+
         todos.createQueryBuilder()
         .update({
-            title: CryptoJS.AES.encrypt(newTitle, salt).toString()
+            status: newStatus
         }).where({
             id: todosId
         }).execute()

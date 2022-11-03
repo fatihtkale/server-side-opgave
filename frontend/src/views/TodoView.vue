@@ -42,6 +42,7 @@
                       type="checkbox"
                       v-model="todolist.status"
                       class="w-4 bg-blue-500 items-center"
+                      @click="updateTodosStatus(todolist.id, todolist.status)"
                     />
                     <div v-if="toggleEdit" class="flex flex-row gap-2">
                       <input type="text" v-model="editTitle" :placeholder="todolist.title" class="bg-primary-light px-3 py-2 rounded-md shadow-md">
@@ -164,8 +165,24 @@ function toggleEditTodos () {
   toggleEdit.value = !toggleEdit.value
 }
 
-function updateTodosTitle(id: number) {
-  console.log(id)
+async function updateTodosTitle(id: number) {
+  await axios.put('http://localhost:3000/todos/title', {
+    todosId: id,
+    title: editTitle.value
+  }).then(() => {
+    editTitle.value = ''
+    toggleEdit.value = false
+    fetchTodoList()
+  })
+}
+
+async function updateTodosStatus(id: number, status: boolean) {
+  await axios.put('http://localhost:3000/todos/status', {
+    todosId: id,
+    status: status
+  }).then(() => {
+    fetchTodoList()
+  })
 }
 
 var todoCreateForm = reactive({
@@ -203,6 +220,7 @@ onMounted(async () => {
 
 async function fetchTodoList() {
   var todos = await axios.get(`http://localhost:3000/todo/${token.result.id}`);
+  console.log(todos)
   await prepareData(todos.data);
 }
 
@@ -216,8 +234,6 @@ async function prepareData(list: []) {
   list.forEach((element: any) => {
     todos.value.push({ ...element, show: false });
   });
-
-  console.log(list);
 }
 
 async function createNewTodo() {

@@ -21,8 +21,6 @@ class TodoService {
             sentDate.toLocaleString('default', { day: 'numeric', month: 'long', year: 'numeric' }), salt).toString()
         var enDesc = CryptoJS.AES.encrypt(desc, salt).toString()
 
-        console.log(enDate)
-
         var checkTodoExists = await todo.findOne({ where: {
             date: enDate.toString(),
             user: selectedUser
@@ -114,7 +112,6 @@ class TodoService {
             
             let x = element.Todos.map(elementy => {
                 elementy.title = CryptoJS.AES.decrypt(elementy.title, salt).toString(CryptoJS.enc.Utf8);
-                console.log(elementy.title)
                 return elementy
             });
 
