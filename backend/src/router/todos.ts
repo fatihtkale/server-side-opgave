@@ -27,4 +27,20 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
+router.put('/title',async (req:Request, res: Response) => {
+  try {
+    res.send(TodosService.updateTodosTitle(req.body.todosId, req.body.title))
+  } catch (error) {
+    console.log(error)
+  }
+})
+
+router.put('/status',async (req:Request, res: Response) => {
+  try {
+    res.send(TodosService.updateTodosStatus(req.body.todosId, req.body.status))
+  } catch (error) {
+    console.log(error)
+  }
+})
+
 export default router;

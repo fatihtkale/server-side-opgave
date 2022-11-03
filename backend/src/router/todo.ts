@@ -25,8 +25,8 @@ router.post("/", async (req: Request, res: Response) => {
     var result = await TodoService.createTodo(req.body.userId, '', req.body.date)
 
     if (result === false) {
-      res.send({'status': 'error'})
-    } else{
+      res.send({ 'status': 'error' })
+    } else {
       res.send(result)
     }
 
