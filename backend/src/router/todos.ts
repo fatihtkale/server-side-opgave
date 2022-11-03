@@ -27,12 +27,4 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-// router.post("/todos", async (req: Request, res: Response) => {
-//   try {
-//     // await res.send(await TodosService.createTodosWithTodo(req.body.userId, '', req.body.date))
-//   } catch (error) {
-//     console.log(error);
-//   }
-// });
-
 export default router;

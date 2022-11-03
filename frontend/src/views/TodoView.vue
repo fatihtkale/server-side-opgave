@@ -13,10 +13,10 @@
             class="bg-primary-light mt-3 px-8 py-4 rounded-md text-primary-text-light flex flex-col"
           >
             <div v-if="todos.length > 0">
-              <div class="cursor-pointer my-3" v-for="todo in todos" :key="todo.id">
+              <div class="my-3" v-for="todo in todos" :key="todo.id">
                 <div
                   @click="todo.show = !todo.show"
-                  class="flex flex-row items-center justify-evenly gap-96 py-4 bg-primary-middle p-3"
+                  class="flex flex-row items-center justify-evenly gap-96 py-4 bg-primary-middle p-3 cursor-pointer"
                   :class="
                     todo.show == true ? 'rounded-t-md' : 'shadow-md rounded-md'
                   "
@@ -24,7 +24,6 @@
                   <div></div>
                   <span class="text-xl">{{ todo.date }}</span>
                   <ChevronDownIcon
-                    @click="editTodo(0)"
                     class="w-8"
                     :class="todo.show == true ? 'rotate-180' : ''"
                   />
@@ -47,6 +46,14 @@
                     <span class="text-xl">{{ todolist.title }}</span>
                     <PencilSquareIcon class="w-8" />
                   </div>
+                  <div class="flex justify-center mt-5">
+                    <div v-if="toggleTodosMenu" class="flex flex-row gap-3 items-center">
+                      <div v-if="todosCreateForm.errorCreation" class="bg-red-500 px-5 py-2 rounded-md">{{todosCreateForm.errorCreationMessage}}</div>
+                      <input v-model="todosCreateForm.title" type="text" placeholder="Køb Mælk..." class="bg-primary-dark px-5 py-2 rounded-md text-primary-text-light" />
+                      <div @click="createNewTodos(todo.id)" class="bg-blue-500 px-5 py-2 rounded-md shadow-md font-bold cursor-pointer">Opret</div>
+                    </div>
+                    <span v-else @click="toggleTodos" class="bg-blue-500 px-5 py-2 rounded-md shadow-md font-bold cursor-pointer">Opret Ny Todos</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -57,23 +64,23 @@
         </div>
       </div>
     </div>
-    <div class="flex justify-center">
+    <div class="fixed bottom-5 left-1/2 transform -translate-x-1/2">
       <div
-        @click="toggleModal = !toggleModal"
-        class="bg-blue-500 flex flex-row mb-5 gap-4 py-3 px-5 rounded-md items-center cursor-pointer hover:bg-blue-600"
+        @click="toggleTodoModal = !toggleTodoModal"
+        class="bg-blue-500 flex flex-row mb-5 gap-3 py-3 px-5 rounded-md items-center cursor-pointer hover:bg-blue-600"
       >
         <PlusIcon
           class="w-8 text-primary-text-light"
-          :class="toggleModal == true ? 'rotate-45' : ''"
+          :class="toggleTodoModal == true ? 'rotate-45' : ''"
         />
         <span class="text-primary-text-light font-bold">{{
-          toggleModal == true ? "Luk Todo" : "Ny Todo"
+          toggleTodoModal == true ? "Luk Todo" : "Ny Todo"
         }}</span>
       </div>
     </div>
   </div>
   <div
-    v-if="toggleModal"
+    v-if="toggleTodoModal"
     class="absolute transform -translate-x-1/2 left-1/2 z-50 top-1/2"
   >
     <div
@@ -81,19 +88,12 @@
     >
       <span class="text-xl font-bold">Opret ny Todo</span>
       <div class="flex flex-col gap-3">
-        <div class="flex flex-row gap-4 justify-between items-center mt-5">
+        <span v-if="todoCreateForm.errorCreation" class="bg-red-500 rounded-md py-2 mt-4 px-3">{{todoCreateForm.errorCreationMessage}}</span>
+        <div class="flex flex-row gap-4 justify-between items-center mt-2">
           <span>Vælg dato:</span>
-          <input class="bg-primary-middle px-3 py-2 rounded-md" type="date" />
+          <input v-model="todoCreateForm.newTodoDate" class="bg-primary-middle px-3 py-2 rounded-md" type="date" />
         </div>
-        <div class="flex flex-row gap-4 justify-between items-center mt-5">
-          <span>Indtast task:</span>
-          <input
-            class="bg-primary-middle px-3 py-2 rounded-md"
-            placeholder="Køb Mælk..."
-            type="text"
-          />
-        </div>
-        <div class="bg-blue-500 text-center py-3 rounded-md shadow-md cursor-pointer">
+        <div @click="createNewTodo" class="bg-blue-500 text-center py-3 rounded-md shadow-md cursor-pointer">
           Opret
         </div>
       </div>
@@ -107,37 +107,78 @@ import {
   PlusIcon,
   PencilSquareIcon,
 } from "@heroicons/vue/24/outline";
-import { onMounted, ref } from "@vue/runtime-core";
+import { onMounted, reactive, ref } from "@vue/runtime-core";
 import axios from "axios";
 import { useStore } from "vuex";
 import jwt_decode from "jwt-decode";
 
 var store = useStore();
-var todos = ref([]);
-var toggleModal = ref(false);
+var todos = ref<any>([]);
+var toggleTodoModal = ref(false);
+var toggleTodosMenu = ref(false);
+var token: any = jwt_decode(store.state.user.token);
+
+var todoCreateForm = reactive({
+  newTodoDate: new Date(),
+  errorCreation : false,
+  errorCreationMessage: ''
+})
+
+var todosCreateForm = reactive({
+  errorCreation: false,
+  errorCreationMessage: '',
+  title: ''
+})
+
+function toggleTodos(){
+  toggleTodosMenu.value = !toggleTodosMenu.value
+}
+
+async function createNewTodos(todoId: number){
+  console.log(todoId)
+  await axios.post('http://localhost:3000/todos', {
+    todoId,
+    title: todosCreateForm.title
+  }).then(res => {
+    fetchTodoList()
+  })
+}
 
 onMounted(async () => {
-  var token = jwt_decode(store.state.user.token);
+  fetchTodoList()
+});
+
+async function fetchTodoList(){
   var todos = await axios.get(`http://localhost:3000/todo/${token.result.id}`);
   await prepareData(todos.data);
-});
+}
 
 async function prepareData(list: []) {
   // sorter med dato
+  todos.value = []
   list.sort(function (a, b) {
     return new Date(a.date) - new Date(b.date);
   });
 
-  list.forEach((element) => {
+  list.forEach((element: any) => {
     todos.value.push({ ...element, show: false });
   });
 }
 
-function editTodo(editIndex: number) {
-  console.log("hello");
+async function createNewTodo(){
+  await axios.post(`http://localhost:3000/todo`, {
+    userId: token.result.id,
+    date: todoCreateForm.newTodoDate
+  }).then(res => {
+    console.log(res.data.status)
+    if(res.data.status === 'error'){
+      todoCreateForm.errorCreation = true
+      todoCreateForm.errorCreationMessage = 'Dato eksister allerede!'
+    }else{
+      toggleTodoModal.value = !toggleTodoModal.value
+      fetchTodoList()
+    }
+  })
 }
 
-function expandTodo() {
-  console.log("hello");
-}
 </script>

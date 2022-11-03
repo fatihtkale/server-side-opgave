@@ -22,7 +22,14 @@ router.get("/:id", async (req: Request, res: Response) => {
 
 router.post("/", async (req: Request, res: Response) => {
   try {
-    await res.send(await TodoService.createTodo(req.body.userId, '', req.body.date))
+    var result = await TodoService.createTodo(req.body.userId, '', req.body.date)
+
+    if (result === false) {
+      res.send({'status': 'error'})
+    } else{
+      res.send(result)
+    }
+
   } catch (error) {
     console.log(error);
   }

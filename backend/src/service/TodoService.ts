@@ -15,12 +15,14 @@ class TodoService {
 
         var selectedUser = await user.findOne({ where: { id: userId } })
 
-        var checkTodoExists = await todo.findOne({where: {
-            date: sentDate.toLocaleString('default', { day: 'numeric', month: 'long', year: 'numeric' })
+        var checkTodoExists = await todo.findOne({ where: {
+            date: sentDate.toLocaleString('default', { day: 'numeric', month: 'long', year: 'numeric' }),
+            user: selectedUser
         }})
 
-        if(checkTodoExists !== null || checkTodoExists !== undefined){
-            await TodosService.createTodosWithTodo(checkTodoExists.id)
+        if(!isEmpty(checkTodoExists)){
+            console.log("this date already exsist")
+            return false;
         }else{   
             await todo.save({
                 desc,
